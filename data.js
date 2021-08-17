@@ -1,5 +1,5 @@
 
-var data  = [
+export let data  = [
   ['a','c','240 lbs'],
   ['b','a','350 lbs'],
   ['v','b','400 lbs'],
@@ -241,4 +241,3 @@ var data  = [
 
 ];
 
-export default data;
