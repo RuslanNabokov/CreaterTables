@@ -10,26 +10,17 @@ function StoreRow(conf={}){
 	this.id = conf.id || 0
 	this.parrent = conf.parrent
 	this.data_ =  {}
-
-
 	this.data_gen  = function(){
 		
 		sel.id_arr.forEach( function(element,index){ 
-			sel.data_[element] = {}
-			
-			
+			sel.data_[element] = {}	
 		})
 	}
 		
-	this.data_gen()
 
 function whicher(data){
 	Object.keys(data).forEach(key => {
     	let internalValue = data[key]
-    
-
-   
-
 		    Object.defineProperty(data, key, {
 		        get() {
 		          
@@ -114,10 +105,7 @@ function BaseStore(conf={} ){
 function whicher(data){
 Object.keys(data).forEach(key => {
     let internalValue = data[key]
-    
-
    
-
     Object.defineProperty(data, key, {
         get() {
           
@@ -192,16 +180,32 @@ function Create_table(conf={}){
 		 let arr =  Array.from(this.table.rows).slice(1)
 		 arr.sort((a,b) => a.cells[row].innerHTML >  
 		 									 b.cells[row].innerHTML ? 1: -1   )
-		 console.log(this.table.tBodies[0])
-		 this.table.tBodies[0].append(...arr);
+		 let table_ =  document.getElementById(this.table_id)
+		 console.log(table_)
+		 if (table_ != 'undefined'){
+		 	console.log(table_)
+		 
+		
+		 table_.parentNode.removeChild(table_);
+		 table_.remove()
+			}
+		 this.data = arr
+		 
+		 this.draw_table()
 	} 
 
 
 	this._draw_header = function(){ 
 		   this.table = document.createElement('table');
+		   this.table_id = 'ccc'
+		   this.table.setAttribute('id', this.table_id)
 		   let tr =  document.createElement('tr')
 		   for(var i = 0; i < this.col_len; i++){
+
 		   	 	let th =  document.createElement('th')
+		   	 	th.setAttribute('id-col',i)
+		   	 	th.addEventListener('click',function(elem){ let id = elem.srcElement.getAttribute('id-col');this.sort_table_by(id )   }.bind(this))
+
 		   	 	tr.appendChild(th)
 		   	 	this.table.appendChild(tr)
 		   	 	th.innerHTML = i
@@ -210,10 +214,10 @@ function Create_table(conf={}){
 
 	}
 	this._draw_body = function(){
-			var   body = document.createElement("tbody")
+			let   body = document.createElement("tbody")
 			let  col_on_page = 0
 			let tr  = document.createElement('tr')
-			var sel = this
+			let sel = this
 			let td
 			Object.entries(this.data).forEach( function(element, index) {
 			
@@ -255,7 +259,7 @@ let table2 =  new Create_table({
 											})
 table2.draw_table()
 
-table2.sort_table_by(2)
+// table2.sort_table_by(2)
 
 
 let store = new BaseStore({'data_in':data })
