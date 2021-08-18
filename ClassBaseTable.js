@@ -1,69 +1,22 @@
 import {data} from  './data.js'
+import StoreRow from './StoreRow.js'
+import StoreCol from './StoreCol.js'
 
 
 
 
-function StoreRow(conf={}){
-	var sel = this
-	this.id_arr =  conf.id_arr || []
-	this.data = conf.data || []
-	this.id = conf.id || 0
-	this.parrent = conf.parrent
-	this.data_ =  {}
-	this.data_gen  = function(){
-		
-		sel.id_arr.forEach( function(element,index){ 
-			sel.data_[element] = {}	
-		})
-	}
-		
-
-function whicher(data){
-	Object.keys(data).forEach(key => {
-    	let internalValue = data[key]
-		    Object.defineProperty(data, key, {
-		        get() {
-		          
-		            return  this.parrent.data[key]
-		        },
-		        set(newVal) {
-		            this.parrent[key] = newVal
-		            
-		            
-		        }
-		    })
-		})
-
-
-}
-
-whicher(this.data_)
-
-
-}
-
-
-function  StoreCol(conf={}) {
-	this.id_arr =  conf.id_arr || []
-	this.data = conf.data || []
-	this.id = conf.id || 0
-	this.parrent = conf.parrent
-	
-
-
-}
 
 
 
 function BaseStore(conf={} ){
 	let sel  = this
-	console.log(conf)
+
 	this.name =  conf.name || 'Name'
 	this.type = conf.type  || 'local'
-	this.data_in = conf.data_in || []
+	this.data_in = conf.data_in || []   // [ [1,2,3],[1,2,3]]
 	this.data = {}
 	this.rows_ = []
-	this.cols = []
+	this.cols_ = []
 	this.gen_ =  function (argument) {
     var text = "";
     var possible = "abcdefghijklmnopqrstuvwxyz";
@@ -75,11 +28,11 @@ function BaseStore(conf={} ){
 
 	
 	for(var i=0;i<sel.data_in[0].length;i++){ 
-		sel.cols[i] =  new StoreCol({'id':i,'parrent':this})  
+		sel.cols_[i] =  new StoreCol({'id':i,'parrent':this,'data':[],'parrent':this })  
 	}
 	this.data_in.forEach( function(element, index) {
 	
-		sel.rows_.push(new StoreRow({'data':{...element} ,'id':index, 'parrent':sel}))
+		sel.rows_.push(new StoreRow({'data': {}, 'id':index, 'parrent':sel}))
 		let gen = ''
 		
 		for(var i=0;i<element.length;i++){ 
@@ -88,8 +41,8 @@ function BaseStore(conf={} ){
 			
 			sel.rows_[index]['id_arr'][i] = gen 
 			
-			sel.cols[i].id_arr.push(gen)
-			sel.cols[i].data.push(element[i])
+			
+			sel.cols_[i].data.push({'row':sel.rows_[index],'el':gen})
 
 
 
@@ -99,8 +52,13 @@ function BaseStore(conf={} ){
 	})
 	sel.rows_.map(function(element,index){
 		element.data_gen()
+		element.whicher_()
+
 	})
-	;
+	sel.cols_.map(function(element,index){
+		element.whicher()
+		element.sorted()
+			})
 
 function whicher(data){
 Object.keys(data).forEach(key => {
@@ -163,8 +121,8 @@ function Create_table(conf={}){
 	this.col_len =  3
 	 // conf.col_len ||  conf.data[0].length || 1
 	this.name_cols =   conf.name_cols  || new Array('1','2','3','4')
-	this.data =   new BaseStore({'data_in':conf.data}).data
-
+	this.data =   new BaseStore({'data_in':conf.data})
+	this.sorted = 0
 	this.style_ = conf.style || 'classic'
 	this.class_dict =  conf.class_dict || {'head': 'head',
 						 					'cols_head':'cols_head',
@@ -177,19 +135,19 @@ function Create_table(conf={}){
 
 	this.sort_table_by = function(row){ 
  		
-		 let arr =  Array.from(this.table.rows).slice(1)
-		 arr.sort((a,b) => a.cells[row].innerHTML >  
-		 									 b.cells[row].innerHTML ? 1: -1   )
+		 // let arr =  Array.from(this.table.rows).slice(1)
+		let arr =  this.data
+		
 		 let table_ =  document.getElementById(this.table_id)
 		 console.log(table_)
 		 if (table_ != 'undefined'){
-		 	console.log(table_)
+		 	
 		 
 		
 		 table_.parentNode.removeChild(table_);
 		 table_.remove()
 			}
-		 this.data = arr
+		this.sorted = row
 		 
 		 this.draw_table()
 	} 
@@ -215,24 +173,40 @@ function Create_table(conf={}){
 	}
 	this._draw_body = function(){
 			let   body = document.createElement("tbody")
-			let  col_on_page = 0
-			let tr  = document.createElement('tr')
 			let sel = this
-			let td
-			Object.entries(this.data).forEach( function(element, index) {
 			
-			  if (col_on_page == sel.col_len ){
-			  	body.appendChild(tr)
-			 
-			  	tr  = document.createElement('tr')
-			  	col_on_page = 0
-			  }
+			let td
+			console.log(this.data)
+			this.data.cols_[this.sorted].data.forEach( function(element, index) {
 
-			   td = document.createElement('td')
-			    	td.innerHTML =element.slice(1)
-			    	tr.appendChild(td)
+				
+				let tr  = document.createElement('tr')
+				
+				for (let i in  element.row.data_){
+
+					td = document.createElement('td')
+					td.setAttribute('id',i)
+
+					 td.innerHTML = element.row.data_[i]
+				
+					 tr.appendChild(td)
+				}
+				body.appendChild(tr)
+				
+				
+
+			  // if (col_on_page == sel.col_len ){
+			  // 	body.appendChild(tr)
+			 
+			  // 	tr  = document.createElement('tr')
+			  // 	col_on_page = 0
+			  // }
+
+			  //  td = document.createElement('td')
+			  //   	td.innerHTML =element.slice(1)
+			  //   	tr.appendChild(td)
 			    	
-			    col_on_page +=1
+			  //   col_on_page +=1
 			  
 		
 			    	 
