@@ -17,6 +17,7 @@ function BaseStore(conf={} ){
 	this.data = {}
 	this.rows_ = []
 	this.cols_ = []
+
 	this.gen_ =  function (argument) {
     var text = "";
     var possible = "abcdefghijklmnopqrstuvwxyz";
@@ -30,26 +31,82 @@ function BaseStore(conf={} ){
 	for(var i=0;i<sel.data_in[0].length;i++){ 
 		sel.cols_[i] =  new StoreCol({'id':i,'parrent':this,'data':[],'parrent':this })  
 	}
+
 	this.data_in.forEach( function(element, index) {
 	
 		sel.rows_.push(new StoreRow({'data': {}, 'id':index, 'parrent':sel}))
 		let gen = ''
-		
 		for(var i=0;i<element.length;i++){ 
 			gen = sel.gen_()
 			sel.data[gen] = element[i]
-			
 			sel.rows_[index]['id_arr'][i] = gen 
-			
-			
 			sel.cols_[i].data.push({'row':sel.rows_[index],'el':gen})
 
 
 
 		}
-	
-
 	})
+	this._groupe_by = function(colums_array,data){
+		
+			let arr_val = new Array()
+			let groups = {}
+				if (data.length <= 1 ){
+					return data
+				}
+
+				for (let i = 0; i < data.length; i++) {
+					
+					let key = data[i].id_arr[colums_array[0]]
+
+					// console.log(key)id_arr[colums_array[0]]]
+					// console.log( Object.keys(data[i].data_) )
+					
+					let val = data[i].data_[key]
+				
+					if (arr_val.includes(val) ){
+						groups[val].push(data[i])
+					}else{ 
+							arr_val.push(val)
+							groups[val] = []
+							groups[val].push(data[i]) 
+
+					}
+				}
+
+			if (colums_array.length <= 1){
+
+				return groups
+			}else{ 
+				let keys = Object.keys(groups)
+
+				for (let n = 0; n < keys.length; n++) {
+										// console.log(groups[keys[i]])
+					// console.log(sel.groupe_by(colums_array.slice(1), groups[keys[i]]))
+					
+					groups[keys[n]] = sel._groupe_by(colums_array.slice(1), groups[keys[n]])
+				}
+				return groups
+			}
+			return   groups
+	} 
+	this.groupe_by = function(colum){
+		return this._groupe_by(colum,this.rows_)
+	}
+	// this.groupe_by = function(colums){
+	// 	let arr_val = new Array()
+	// 	let groups = {}
+	// 	for (var i = 0; i < this.rows_.length; i++) {
+	// 		let key = Object.keys(this.rows_[i].data_)[colum]
+	// 		let val = this.rows_[i].data_[key]
+	// 		if (arr_val.includes(val) ){
+	// 			groups[val].push(this.rows_[i])
+	// 		}else{ 
+	// 			arr_val.push(val)
+	// 			groups[val] = []
+	// 		}
+	// 	}
+	// 	return groups
+	// }
 	sel.rows_.map(function(element,index){
 		element.data_gen()
 		element.whicher_()
@@ -66,7 +123,6 @@ Object.keys(data).forEach(key => {
    
     Object.defineProperty(data, key, {
         get() {
-          
             return internalValue
         },
         set(newVal) {
@@ -139,7 +195,7 @@ function Create_table(conf={}){
 		let arr =  this.data
 		
 		 let table_ =  document.getElementById(this.table_id)
-		 console.log(table_)
+		
 		 if (table_ != 'undefined'){
 		 	
 		 
@@ -171,30 +227,66 @@ function Create_table(conf={}){
 
 
 	}
-	this._draw_body = function(){
-			let   body = document.createElement("tbody")
-			let sel = this
-			
-			let td
-			console.log(this.data)
-			this.data.cols_[this.sorted].data.forEach( function(element, index) {
+	this._drow_row = function(data){
+		let table_ =  document.getElementById(this.table_id)
 
-				
-				let tr  = document.createElement('tr')
-				
-				for (let i in  element.row.data_){
+		let tr  = document.createElement('tr')
+		let td
+			for (let i in data  ){
 
 					td = document.createElement('td')
 					td.setAttribute('id',i)
 
-					 td.innerHTML = element.row.data_[i]
+					 td.innerHTML = data[i] || ''
 				
 					 tr.appendChild(td)
 				}
-				body.appendChild(tr)
-				
-				
+				return tr
 
+	}
+
+	this._draw_group = function(colum){
+			this._draw_header()
+			let table = this.table
+			let   body = document.createElement("tbody")
+		
+			console.log(table)
+			if (table && table.parentNode ){
+				
+				table.parentNode.removeChild(table_);
+				table.remove()
+			}
+
+			let data  = store.groupe_by(colum)
+			let tr
+			let td
+			for  (let i in data){
+
+				 tr =   document.createElement('tr')
+				 td = document.createElement('td')
+				 tr.setAttribute('class','group_root')
+				 td.innerHTML = i
+				 tr.appendChild(td)
+				 body.appendChild(tr)
+			}
+			console.log(body)
+			table.appendChild(body)
+			var tg = document.getElementById('main')
+			console.log(tg)
+					tg.appendChild(this.table)
+	}
+	this._draw_body = function(){
+			let   body = document.createElement("tbody")
+			let sel = this
+			let data
+			let tr
+			
+			console.log(this.data)
+			this.data.cols_[this.sorted].data.forEach( function(element, index) {				
+				data = element.row.data_
+				tr = sel._drow_row(data)
+				body.appendChild(tr)
+// 
 			  // if (col_on_page == sel.col_len ){
 			  // 	body.appendChild(tr)
 			 
@@ -207,8 +299,6 @@ function Create_table(conf={}){
 			  //   	tr.appendChild(td)
 			    	
 			  //   col_on_page +=1
-			  
-		
 			    	 
 			});
 
@@ -231,11 +321,14 @@ function Create_table(conf={}){
 let table2 =  new Create_table({
 								'data':data 
 											})
-table2.draw_table()
+// table2.draw_table()
 
 // table2.sort_table_by(2)
 
 
 let store = new BaseStore({'data_in':data })
-console.log(store)
+
+console.log( store.groupe_by([0,1]))
+// table2._draw_group(2)
+
 
