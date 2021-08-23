@@ -244,36 +244,39 @@ function Create_table(conf={}){
 				return tr
 
 	}
+	// this._rec_draw_group = function(data){
+	// 	if data
 
+	// } 
 	this._draw_group = function(colum){
 			this._draw_header()
 			let table = this.table
 			let   body = document.createElement("tbody")
 		
-			console.log(table)
+			
 			if (table && table.parentNode ){
 				
 				table.parentNode.removeChild(table_);
 				table.remove()
 			}
 
-			let data  = store.groupe_by(colum)
+			let data  = this.data.groupe_by(colum)
 			let tr
 			let td
-			for  (let i in data){
+			console.log(data)
+			// for  (let i in data){
 
-				 tr =   document.createElement('tr')
-				 td = document.createElement('td')
-				 tr.setAttribute('class','group_root')
-				 td.innerHTML = i
-				 tr.appendChild(td)
-				 body.appendChild(tr)
-			}
-			console.log(body)
+			// 	 tr =   document.createElement('tr')
+			// 	 td = document.createElement('td')
+			// 	 tr.setAttribute('class','group_root')
+			// 	 td.innerHTML = i
+			// 	 tr.appendChild(td)
+			// 	 body.appendChild(tr)
+			// }
+			
 			table.appendChild(body)
 			var tg = document.getElementById('main')
-			console.log(tg)
-					tg.appendChild(this.table)
+			tg.appendChild(this.table)
 	}
 	this._draw_body = function(){
 			let   body = document.createElement("tbody")
@@ -281,7 +284,7 @@ function Create_table(conf={}){
 			let data
 			let tr
 			
-			console.log(this.data)
+			
 			this.data.cols_[this.sorted].data.forEach( function(element, index) {				
 				data = element.row.data_
 				tr = sel._drow_row(data)
@@ -321,14 +324,12 @@ function Create_table(conf={}){
 let table2 =  new Create_table({
 								'data':data 
 											})
-// table2.draw_table()
+table2._draw_group([0,1])
 
-// table2.sort_table_by(2)
+table2.sort_table_by(2)
 
 
-let store = new BaseStore({'data_in':data })
-
-console.log( store.groupe_by([0,1]))
-// table2._draw_group(2)
+// let store = new BaseStore({'data_in':data })
+// store.groupe_by([0])
 
 
