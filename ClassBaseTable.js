@@ -189,7 +189,7 @@ function Create_table(conf={}){
 	this.parrent_element = conf.parrent_element || 'body'
 
 
-	this.sort_table_by = function(row){ 
+	this.sorted_by = function(row){ 
  		
 		 // let arr =  Array.from(this.table.rows).slice(1)
 		let arr =  this.data
@@ -218,7 +218,7 @@ function Create_table(conf={}){
 
 		   	 	let th =  document.createElement('th')
 		   	 	th.setAttribute('id-col',i)
-		   	 	th.addEventListener('click',function(elem){ let id = elem.srcElement.getAttribute('id-col');this.sort_table_by(id )   }.bind(this))
+		   	 	th.addEventListener('click',function(elem){ let id = elem.srcElement.getAttribute('id-col');this.sorted_by(id )   }.bind(this))
 
 		   	 	tr.appendChild(th)
 		   	 	this.table.appendChild(tr)
@@ -228,7 +228,7 @@ function Create_table(conf={}){
 
 	}
 	this._drow_row = function(data){
-		let table_ =  document.getElementById(this.table_id)
+		// let table_ =  document.getElementById(this.table_id)
 
 		let tr  = document.createElement('tr')
 		let td
@@ -244,8 +244,74 @@ function Create_table(conf={}){
 				return tr
 
 	}
-	// this._rec_draw_group = function(data){
-	// 	if data
+	//id_arr
+	this._rec_draw_group = function(data,parrent=0){
+		let td
+		let rows =  []
+		var current_id =  parrent+1 
+		if (Array.isArray(data)){
+
+			 for (var i = 0; i < data.length; i++) {
+			 		 var arr =  []
+			 		for (var c=0;c<data[i].id_arr.length;c++){
+			 			let cur_id =  data[i].id_arr[c]
+			 			
+			 			arr.push(data[i].data_[cur_id])
+			 		} 
+			 		
+			 		let row = this._drow_row(arr)
+			 		row.setAttribute('parrent-id',parrent)
+			 		rows.push(row)
+
+					
+			 }
+			 return rows
+
+		}else{
+				
+			
+			Object.entries(data).forEach(function(entry){
+				const [key, value] = entry;
+				let  row =  document.createElement('tr')
+				row.setAttribute('data-id',current_id)
+				// let div = document.createElement('div')
+				row.className =  'main'
+				if ( parrent != 0){
+					row.setAttribute('data-parrent',`${parrent}`)
+				}
+				// div.innerHTML = 'group_by ' +  key
+				row.innerHTML = 'Group by ' + key
+				// row.appendChild(div)
+				row.onclick = function(){
+					
+					function  rec(current_id) {
+						let arr = document.querySelectorAll(`[parrent-id='${current_id}']`)
+						debugger
+						let children_arr = Array.from(arr).map(function(arg) {
+						if (arg.classList.contains('main') ){ 
+									rec(arg.getAttribute('data-id'))
+							}
+						for (var i = 0; i < arr.length; i++) {
+							
+							arr[i].hidden=true
+						}
+						})
+					}
+				
+					rec(current_id)
+
+				}
+				rows.push(row)
+				rows.push(...this._rec_draw_group(value,current_id)   ) 
+  				
+			}.bind(this) ) 
+			
+			return rows
+
+		}
+	
+	}
+
 
 	// } 
 	this._draw_group = function(colum){
@@ -263,19 +329,15 @@ function Create_table(conf={}){
 			let data  = this.data.groupe_by(colum)
 			let tr
 			let td
-			console.log(data)
-			// for  (let i in data){
-
-			// 	 tr =   document.createElement('tr')
-			// 	 td = document.createElement('td')
-			// 	 tr.setAttribute('class','group_root')
-			// 	 td.innerHTML = i
-			// 	 tr.appendChild(td)
-			// 	 body.appendChild(tr)
-			// }
+			let rows = this._rec_draw_group(data)
+			
+			for  (let i of rows){
+					body.appendChild(i)
+			  }
 			
 			table.appendChild(body)
 			var tg = document.getElementById('main')
+
 			tg.appendChild(this.table)
 	}
 	this._draw_body = function(){
@@ -324,11 +386,11 @@ function Create_table(conf={}){
 let table2 =  new Create_table({
 								'data':data 
 											})
+
+
+// table2.sorted_by(2)
 table2._draw_group([0,1])
-
-table2.sort_table_by(2)
-
-
+document.table = table2
 // let store = new BaseStore({'data_in':data })
 // store.groupe_by([0])
 
